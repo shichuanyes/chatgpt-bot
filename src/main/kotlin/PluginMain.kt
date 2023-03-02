@@ -1,4 +1,4 @@
-package org.example.mirai.plugin
+package com.github.shichuanyes.chatgpt
 
 import net.mamoe.mirai.console.permission.AbstractPermitteeId
 import net.mamoe.mirai.console.permission.PermissionService
@@ -34,15 +34,14 @@ import net.mamoe.mirai.utils.info
 
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
-        id = "org.example.mirai-example",
-        name = "插件示例",
+        id = "com.github.shichuanyes.chatgpt",
+        name = "ChatGPT Bot",
         version = "0.1.0"
     ) {
-        author("作者名称或联系方式")
+        author("shichuanyes")
         info(
             """
-            这是一个测试插件, 
-            在这里描述插件的功能和用法等.
+            ChatGPT API as QQ/mirai plugin. 
         """.trimIndent()
         )
         // author 和 info 可以删除.
