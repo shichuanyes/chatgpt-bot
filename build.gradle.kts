@@ -15,3 +15,8 @@ repositories {
     }
     mavenCentral()
 }
+
+dependencies {
+    implementation("com.google.code.gson:gson:+")
+    implementation("com.github.kittinunf.fuel:fuel:+")
+}

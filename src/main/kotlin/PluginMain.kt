@@ -1,5 +1,12 @@
 package com.github.shichuanyes.chatgpt
 
+import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.FuelError
+import com.github.kittinunf.fuel.core.extensions.authentication
+import com.github.kittinunf.fuel.core.extensions.jsonBody
+import com.github.kittinunf.result.Result
+import com.google.gson.Gson
+import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
 import net.mamoe.mirai.console.permission.AbstractPermitteeId
 import net.mamoe.mirai.console.permission.PermissionService
 import net.mamoe.mirai.console.permission.PermissionService.Companion.hasPermission
@@ -47,36 +54,56 @@ object PluginMain : KotlinPlugin(
         // author 和 info 可以删除.
     }
 ) {
+    private val gson = Gson()
+
+    @Throws(FuelError::class)
     override fun onEnable() {
+        PluginConfig.reload()
+        PluginData.reload()
+
+        Chatgpt.register()
+
         logger.info { "Plugin loaded" }
         //配置文件目录 "${dataFolder.absolutePath}/"
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent> {
-            //群消息
-            //复读示例
-            if (message.contentToString().startsWith("复读")) {
-                group.sendMessage(message.contentToString().replace("复读", ""))
-            }
-            if (message.contentToString() == "hi") {
-                //群内发送
-                group.sendMessage("hi")
-                //向发送者私聊发送消息
-                sender.sendMessage("hi")
-                //不继续处理
-                return@subscribeAlways
-            }
-            //分类示例
-            message.forEach {
-                //循环每个元素在消息里
-                if (it is Image) {
-                    //如果消息这一部分是图片
-                    val url = it.queryUrl()
-                    group.sendMessage("图片，下载地址$url")
-                }
-                if (it is PlainText) {
-                    //如果消息这一部分是纯文本
-                    group.sendMessage("纯文本，内容:${it.content}")
-                }
+//            //群消息
+//            //复读示例
+//            if (message.contentToString().startsWith("复读")) {
+//                group.sendMessage(message.contentToString().replace("复读", ""))
+//            }
+//            if (message.contentToString() == "hi") {
+//                //群内发送
+//                group.sendMessage("hi")
+//                //向发送者私聊发送消息
+//                sender.sendMessage("hi")
+//                //不继续处理
+//                return@subscribeAlways
+//            }
+//            //分类示例
+//            message.forEach {
+//                //循环每个元素在消息里
+//                if (it is Image) {
+//                    //如果消息这一部分是图片
+//                    val url = it.queryUrl()
+//                    group.sendMessage("图片，下载地址$url")
+//                }
+//                if (it is PlainText) {
+//                    //如果消息这一部分是纯文本
+//                    group.sendMessage("纯文本，内容:${it.content}")
+//                }
+//            }
+
+            if (message.contentToString().startsWith(("!ask"))) {
+                val body = RequestJson(messages = arrayListOf<Message>(Message(role = "user", content = message.contentToString().replace("!ask", ""))))
+                val (_, response, result) = Fuel.post("https://api.openai.com/v1/chat/completions")
+                    .authentication()
+                    .bearer(PluginConfig.apiKey)
+                    .jsonBody(gson.toJson(body))
+                    .responseString()
+                if (result is Result.Failure) throw result.getException()
+                val json = gson.fromJson(response.data.decodeToString(), ResponseJson::class.java)
+                group.sendMessage(json.choices.first().message.content)
             }
         }
         eventChannel.subscribeAlways<FriendMessageEvent> {
@@ -92,11 +119,11 @@ object PluginMain : KotlinPlugin(
             accept()
         }
 
-        myCustomPermission // 注册权限
+        modPermission // 注册权限
     }
 
     // region console 权限系统示例
-    private val myCustomPermission by lazy { // Lazy: Lazy 是必须的, console 不允许提前访问权限系统
+    private val modPermission by lazy { // Lazy: Lazy 是必须的, console 不允许提前访问权限系统
         // 注册一条权限节点 org.example.mirai-example:my-permission
         // 并以 org.example.mirai-example:* 为父节点
 
@@ -104,14 +131,14 @@ object PluginMain : KotlinPlugin(
         //                 在 Console 内置权限系统中, 如果某人拥有父权限
         //                 那么意味着此人也拥有该权限 (org.example.mirai-example:my-permission)
         // @func: PermissionIdNamespace.permissionId: 根据插件 id 确定一条权限 id
-        PermissionService.INSTANCE.register(permissionId("my-permission"), "一条自定义权限", parentPermission)
+        PermissionService.INSTANCE.register(permissionId("mod-permission"), "Moderator permission", parentPermission)
     }
 
-    public fun hasCustomPermission(sender: User): Boolean {
+    public fun hasModPermission(sender: User): Boolean {
         return when (sender) {
             is Member -> AbstractPermitteeId.ExactMember(sender.group.id, sender.id)
             else -> AbstractPermitteeId.ExactUser(sender.id)
-        }.hasPermission(myCustomPermission)
+        }.hasPermission(modPermission)
     }
     // endregion
 }
