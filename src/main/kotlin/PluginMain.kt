@@ -18,21 +18,6 @@ import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.utils.info
 
-/**
- * 使用 kotlin 版请把
- * `src/main/resources/META-INF.services/net.mamoe.mirai.console.plugin.jvm.JvmPlugin`
- * 文件内容改成 `org.example.mirai.plugin.PluginMain` 也就是当前主类全类名
- *
- * 使用 kotlin 可以把 java 源集删除不会对项目有影响
- *
- * 在 `settings.gradle.kts` 里改构建的插件名称、依赖库和插件版本
- *
- * 在该示例下的 [JvmPluginDescription] 修改插件名称，id和版本，etc
- *
- * 可以使用 `src/test/kotlin/RunMirai.kt` 在 ide 里直接调试，
- * 不用复制到 mirai-console-loader 或其他启动器中调试
- */
-
 object PluginMain : KotlinPlugin(
     JvmPluginDescription(
         id = "com.github.shichuanyes.chatgpt",
@@ -89,11 +74,11 @@ object PluginMain : KotlinPlugin(
         PermissionService.INSTANCE.register(permissionId("mod-permission"), "Moderator permission", parentPermission)
     }
 
-    public fun hasModPermission(sender: User): Boolean {
-        return when (sender) {
-            is Member -> AbstractPermitteeId.ExactMember(sender.group.id, sender.id)
-            else -> AbstractPermitteeId.ExactUser(sender.id)
-        }.hasPermission(modPermission)
-    }
+//    public fun hasModPermission(sender: User): Boolean {
+//        return when (sender) {
+//            is Member -> AbstractPermitteeId.ExactMember(sender.group.id, sender.id)
+//            else -> AbstractPermitteeId.ExactUser(sender.id)
+//        }.hasPermission(modPermission)
+//    }
     // endregion
 }
