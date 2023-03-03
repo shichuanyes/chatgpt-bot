@@ -55,7 +55,7 @@ object PluginMain : KotlinPlugin(
                     .responseString()
                 if (result is Result.Failure) throw result.getException()
                 val json = gson.fromJson(response.data.decodeToString(), ResponseJson::class.java)
-                group.sendMessage(json.choices.first().message.content)
+                group.sendMessage(json.choices.first().message.content.trim())
             }
         }
 
