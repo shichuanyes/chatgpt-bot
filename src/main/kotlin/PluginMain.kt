@@ -18,7 +18,7 @@ object PluginMain : KotlinPlugin(
     JvmPluginDescription(
         id = "com.github.shichuanyes.chatgpt",
         name = "ChatGPT Bot",
-        version = "0.1.0"
+        version = "0.2.0"
     ) {
         author("shichuanyes")
         info(
