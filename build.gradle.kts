@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.github.shichuanyes"
-version = "0.1.0"
+version = "0.2.0"
 
 repositories {
     if (System.getenv("CI")?.toBoolean() != true) {

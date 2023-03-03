@@ -7,13 +7,9 @@ import com.github.kittinunf.fuel.core.extensions.jsonBody
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
 import net.mamoe.mirai.console.command.CommandManager.INSTANCE.register
-import net.mamoe.mirai.console.permission.AbstractPermitteeId
 import net.mamoe.mirai.console.permission.PermissionService
-import net.mamoe.mirai.console.permission.PermissionService.Companion.hasPermission
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescription
 import net.mamoe.mirai.console.plugin.jvm.KotlinPlugin
-import net.mamoe.mirai.contact.Member
-import net.mamoe.mirai.contact.User
 import net.mamoe.mirai.event.GlobalEventChannel
 import net.mamoe.mirai.event.events.GroupMessageEvent
 import net.mamoe.mirai.utils.info
@@ -47,15 +43,24 @@ object PluginMain : KotlinPlugin(
         val eventChannel = GlobalEventChannel.parentScope(this)
         eventChannel.subscribeAlways<GroupMessageEvent> {
             if (message.contentToString().startsWith(("!ask"))) {
-                val body = RequestJson(messages = arrayListOf<Message>(Message(role = "user", content = message.contentToString().replace("!ask", ""))))
-                val (_, response, result) = Fuel.post("https://api.openai.com/v1/chat/completions")
-                    .authentication()
-                    .bearer(PluginConfig.apiKey)
-                    .jsonBody(gson.toJson(body))
-                    .responseString()
-                if (result is Result.Failure) throw result.getException()
-                val json = gson.fromJson(response.data.decodeToString(), ResponseJson::class.java)
-                group.sendMessage(json.choices.first().message.content.trim())
+                if (PluginConfig.apiKey.isBlank()) {
+                    group.sendMessage("Please set Open AI API Key by\ncg setApiKey <api-key>")
+                } else {
+                    val sysMsg = Message(role = "system", content = PluginConfig.systemMessage)
+                    val usrMsg = Message(role = "user", content = message.contentToString().replace("!ask", ""))
+                    val msgs: ArrayList<Message> = arrayListOf(sysMsg, usrMsg)
+                    msgs.removeIf { msg: Message -> msg.content.isBlank() }
+                    val body = RequestJson(messages = msgs)
+
+                    val (_, response, result) = Fuel.post("https://api.openai.com/v1/chat/completions")
+                        .authentication()
+                        .bearer(PluginConfig.apiKey)
+                        .jsonBody(gson.toJson(body))
+                        .responseString()
+                    if (result is Result.Failure) throw result.getException()
+                    val json = gson.fromJson(response.data.decodeToString(), ResponseJson::class.java)
+                    group.sendMessage(json.choices.first().message.content.trim())
+                }
             }
         }
 
@@ -73,12 +78,5 @@ object PluginMain : KotlinPlugin(
         // @func: PermissionIdNamespace.permissionId: 根据插件 id 确定一条权限 id
         PermissionService.INSTANCE.register(permissionId("mod-permission"), "Moderator permission", parentPermission)
     }
-
-//    public fun hasModPermission(sender: User): Boolean {
-//        return when (sender) {
-//            is Member -> AbstractPermitteeId.ExactMember(sender.group.id, sender.id)
-//            else -> AbstractPermitteeId.ExactUser(sender.id)
-//        }.hasPermission(modPermission)
-//    }
     // endregion
 }

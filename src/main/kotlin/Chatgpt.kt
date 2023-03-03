@@ -1,3 +1,4 @@
+@file:Suppress("unused")
 package com.github.shichuanyes.chatgpt
 
 import net.mamoe.mirai.console.command.CommandSender
@@ -8,6 +9,12 @@ object Chatgpt : CompositeCommand(
     @SubCommand("setApiKey")
     suspend fun CommandSender.setApiKey(apiKey: String) {
         PluginConfig.apiKey = apiKey
-        sendMessage("Open AI API Key set.")
+        sendMessage("Open AI API Key set")
+    }
+
+    @SubCommand("setSysMsg")
+    suspend fun CommandSender.setSysMsg(msg: String) {
+        PluginConfig.systemMessage = msg
+        sendMessage("Set system message to ${PluginConfig.systemMessage}")
     }
 }
