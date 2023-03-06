@@ -12,7 +12,7 @@ object PluginMain : KotlinPlugin(
     JvmPluginDescription(
         id = "com.github.shichuanyes.chatgpt",
         name = "ChatGPT Bot",
-        version = "0.2.1"
+        version = "0.3.0"
     ) {
         author("shichuanyes")
         info(
@@ -38,8 +38,23 @@ object PluginMain : KotlinPlugin(
                 subject.sendMessage(RequestHandler.getApiResponse(
                     prompt = content.replace("!ask", ""),
                     apiKey = PluginConfig.apiKey,
-                    systemMessage = PluginConfig.systemMessage
+                    prevMessages = arrayListOf(Message(role = "system", content = PluginConfig.systemMessage))
                 ))
+            } else if (content.startsWith("!chat")) {
+                val history = PluginData.msgHistory[sender.id]
+                if (history.isEmpty()) {
+                    history.add(Message(role = "system", content = PluginConfig.systemMessage))
+                }
+                val response = RequestHandler.getApiResponse(
+                    prompt = content.replace("!chat", ""),
+                    apiKey = PluginConfig.apiKey,
+                    prevMessages = history
+                )
+                history.add(Message(role = "assistant", content = response))
+                subject.sendMessage(response)
+            } else if (content.startsWith("!clear")) {
+                PluginData.msgHistory[sender.id] = arrayListOf()
+                subject.sendMessage("Chat history cleared")
             }
         }
 

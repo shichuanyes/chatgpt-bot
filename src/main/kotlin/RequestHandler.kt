@@ -11,14 +11,11 @@ object RequestHandler {
     private val gson = Gson()
 
     @Throws(FuelError::class)
-    fun getApiResponse(prompt: String, apiKey: String, systemMessage: String): String {
+    fun getApiResponse(prompt: String, apiKey: String, prevMessages: MutableList<Message>): String {
         if (apiKey.isBlank()) return "Please set Open AI API Key by\ncg setApiKey <api-key>"
 
-        val sysMsg = Message(role = "system", content = systemMessage)
-        val usrMsg = Message(role = "user", content = prompt)
-        val msgArray: ArrayList<Message> = arrayListOf(sysMsg, usrMsg)
-        msgArray.removeIf { msg: Message -> msg.content.isBlank() }
-        val body = RequestJson(messages = msgArray)
+        prevMessages.add(Message(role = "user", content = prompt))
+        val body = RequestJson(messages = prevMessages)
 
         val (_, response, result) = Fuel.post("https://api.openai.com/v1/chat/completions")
             .authentication()
@@ -27,6 +24,7 @@ object RequestHandler {
             .responseString()
         if (result is Result.Failure) throw result.getException()
         val json = gson.fromJson(response.data.decodeToString(), ResponseJson::class.java)
+
         return json.choices.first().message.content.trim()
     }
 }

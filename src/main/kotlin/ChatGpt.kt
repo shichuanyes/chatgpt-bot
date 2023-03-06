@@ -15,11 +15,11 @@ object ChatGpt : CompositeCommand(
     @SubCommand("setSysMsg")
     suspend fun CommandSender.setSysMsg(msg: String) {
         PluginConfig.systemMessage = msg
-        sendMessage("Set system message to\n${PluginConfig.systemMessage}")
+        sendMessage("Set system message to\n\n${PluginConfig.systemMessage}")
     }
 
     @SubCommand("getSysMsg")
     suspend fun CommandSender.getSysMsg() {
-        sendMessage("System message is\n${PluginConfig.systemMessage}")
+        sendMessage("System message is\n\n${PluginConfig.systemMessage}")
     }
 }
