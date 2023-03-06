@@ -20,7 +20,6 @@ object PluginMain : KotlinPlugin(
             ChatGPT API as QQ/mirai plugin. 
         """.trimIndent()
         )
-        // author 和 info 可以删除.
     }
 ) {
 
@@ -28,7 +27,7 @@ object PluginMain : KotlinPlugin(
         PluginConfig.reload()
         PluginData.reload()
 
-        Chatgpt.register()
+        ChatGpt.register()
 
         logger.info { "Plugin loaded" }
         //配置文件目录 "${dataFolder.absolutePath}/"
@@ -58,5 +57,4 @@ object PluginMain : KotlinPlugin(
         // @func: PermissionIdNamespace.permissionId: 根据插件 id 确定一条权限 id
         PermissionService.INSTANCE.register(permissionId("mod-permission"), "Moderator permission", parentPermission)
     }
-    // endregion
 }
